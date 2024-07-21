@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
         MAIN_MENU,
         GAME_STARTED,
         PAUSE,
-        GAME_OVER,
+        GAME_OVER
     }
 
     private eStateGame m_state;
@@ -34,10 +34,9 @@ public class GameManager : MonoBehaviour
             StateChangedAction(m_state);
         }
     }
-
+    private eLevelMode m_mode;
 
     private GameSettings m_gameSettings;
-
 
     private BoardController m_boardController;
 
@@ -50,7 +49,7 @@ public class GameManager : MonoBehaviour
         State = eStateGame.SETUP;
 
         m_gameSettings = Resources.Load<GameSettings>(Constants.GAME_SETTINGS_PATH);
-
+        m_gameSettings.LoadData();
         m_uiMenu = FindObjectOfType<UIMainManager>();
         m_uiMenu.Setup(this);
     }
@@ -71,7 +70,7 @@ public class GameManager : MonoBehaviour
     {
         State = state;
 
-        if(State == eStateGame.PAUSE)
+        if (State == eStateGame.PAUSE)
         {
             DOTween.PauseAll();
         }
@@ -85,7 +84,7 @@ public class GameManager : MonoBehaviour
     {
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
         m_boardController.StartGame(this, m_gameSettings);
-
+        m_mode = mode;
         if (mode == eLevelMode.MOVES)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelMoves>();
@@ -107,6 +106,20 @@ public class GameManager : MonoBehaviour
         StartCoroutine(WaitBoardController());
     }
 
+    public void ResetLevel()
+    {
+        ClearLevel();
+        m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
+        m_boardController.StartGame(this, m_gameSettings);
+        if (m_mode == eLevelMode.MOVES)
+        {
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), m_boardController);
+        }
+        else if (m_mode == eLevelMode.TIMER)
+        {
+            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
+        }
+    }
     internal void ClearLevel()
     {
         if (m_boardController)

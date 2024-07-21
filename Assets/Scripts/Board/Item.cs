@@ -10,9 +10,7 @@ public class Item
     public Cell Cell { get; private set; }
 
     public Transform View { get; private set; }
-
-
-    public virtual void SetView()
+    public virtual void SetView(GameSettings gameSettings)
     {
         string prefabname = GetPrefabName();
 
@@ -22,6 +20,39 @@ public class Item
             if (prefab)
             {
                 View = GameObject.Instantiate(prefab).transform;
+                SpriteRenderer spr = View.GetComponent<SpriteRenderer>();
+                switch (spr.sprite.name)
+                {
+                    case string name when name.Equals("characters_0001"):
+                        spr.sprite = gameSettings.sprFishes[0];
+                        break;
+                    case string name when name.Equals("characters_0002"):
+                        spr.sprite = gameSettings.sprFishes[1];
+
+                        break;
+                    case string name when name.Equals("characters_0003"):
+                        spr.sprite = gameSettings.sprFishes[2];
+
+                        break;
+                    case string name when name.Equals("characters_0004"):
+                        spr.sprite = gameSettings.sprFishes[3];
+
+                        break;
+                    case string name when name.Equals("characters_0005"):
+                        spr.sprite = gameSettings.sprFishes[4];
+
+                        break;
+                    case string name when name.Equals("characters_0006"):
+                        spr.sprite = gameSettings.sprFishes[5];
+
+                        break;
+                    case string name when name.Equals("characters_0007"):
+                        spr.sprite = gameSettings.sprFishes[6];
+
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }

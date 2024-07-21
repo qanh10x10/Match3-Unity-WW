@@ -68,7 +68,6 @@ public class BonusItem : Item
             case eBonusType.ALL:
                 ExplodeBomb();
                 break;
-
         }
     }
 

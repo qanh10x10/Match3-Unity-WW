@@ -34,7 +34,6 @@ public class BoardController : MonoBehaviour
     public void StartGame(GameManager gameManager, GameSettings gameSettings)
     {
         m_gameManager = gameManager;
-
         m_gameSettings = gameSettings;
 
         m_gameManager.StateChangedAction += OnGameStateChange;
@@ -224,7 +223,7 @@ public class BoardController : MonoBehaviour
             matches[i].ExplodeItem();
         }
 
-        if(matches.Count > m_gameSettings.MatchesMin)
+        if (matches.Count > m_gameSettings.MatchesMin)
         {
             m_board.ConvertNormalToBonus(matches, cellEnd);
         }

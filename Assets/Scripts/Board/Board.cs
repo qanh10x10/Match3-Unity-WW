@@ -22,14 +22,13 @@ public class Board
     private Cell[,] m_cells;
 
     private Transform m_root;
-
+    private GameSettings m_gameSettings;
     private int m_matchMin;
-
     public Board(Transform transform, GameSettings gameSettings)
     {
         m_root = transform;
-
-        m_matchMin = gameSettings.MatchesMin;
+        m_gameSettings = gameSettings;
+        m_matchMin = m_gameSettings.MatchesMin;
 
         this.boardSizeX = gameSettings.BoardSizeX;
         this.boardSizeY = gameSettings.BoardSizeY;
@@ -101,7 +100,7 @@ public class Board
                 }
 
                 item.SetType(Utils.GetRandomNormalTypeExcept(types.ToArray()));
-                item.SetView();
+                item.SetView(m_gameSettings);
                 item.SetViewRoot(m_root);
 
                 cell.Assign(item);
@@ -138,24 +137,54 @@ public class Board
 
     internal void FillGapsWithNewItems()
     {
+        Dictionary<NormalItem.eNormalType, int> itemTypeCounts = new Dictionary<NormalItem.eNormalType, int>();
+        foreach (NormalItem.eNormalType itemType in Enum.GetValues(typeof(NormalItem.eNormalType)))
+        {
+            itemTypeCounts[itemType] = 0;
+        }
+        for (int x = 0; x < boardSizeX; x++)
+        {
+            for (int y = 0; y < boardSizeY; y++)
+            {
+                Cell cell = m_cells[x, y];
+                if (!cell.IsEmpty && cell.Item is NormalItem normalItem)
+                {
+                    itemTypeCounts[normalItem.ItemType]++;
+                }
+            }
+        }
         for (int x = 0; x < boardSizeX; x++)
         {
             for (int y = 0; y < boardSizeY; y++)
             {
                 Cell cell = m_cells[x, y];
                 if (!cell.IsEmpty) continue;
-
-                NormalItem item = new NormalItem();
-
-                item.SetType(Utils.GetRandomNormalType());
-                item.SetView();
-                item.SetViewRoot(m_root);
-
-                cell.Assign(item);
+                HashSet<NormalItem.eNormalType> surroundingTypes = new HashSet<NormalItem.eNormalType>();
+                if (cell.NeighbourUp != null && cell.NeighbourUp.Item is NormalItem upItem) surroundingTypes.Add(upItem.ItemType);
+                if (cell.NeighbourRight != null && cell.NeighbourRight.Item is NormalItem rightItem) surroundingTypes.Add(rightItem.ItemType);
+                if (cell.NeighbourBottom != null && cell.NeighbourBottom.Item is NormalItem bottomItem) surroundingTypes.Add(bottomItem.ItemType);
+                if (cell.NeighbourLeft != null && cell.NeighbourLeft.Item is NormalItem leftItem) surroundingTypes.Add(leftItem.ItemType);
+                NormalItem.eNormalType chosenType = NormalItem.eNormalType.TYPE_ONE;
+                int minCount = int.MaxValue;
+                foreach (var itemType in itemTypeCounts.Keys)
+                {
+                    if (!surroundingTypes.Contains(itemType) && itemTypeCounts[itemType] < minCount)
+                    {
+                        minCount = itemTypeCounts[itemType];
+                        chosenType = itemType;
+                    }
+                }
+                NormalItem newItem = new NormalItem();
+                newItem.SetType(chosenType);
+                newItem.SetView(m_gameSettings);
+                newItem.SetViewRoot(m_root);
+                cell.Assign(newItem);
                 cell.ApplyItemPosition(true);
+                itemTypeCounts[chosenType]++;
             }
         }
     }
+
 
     internal void ExplodeAllItems()
     {
@@ -282,7 +311,7 @@ public class Board
                 cellToConvert = matches[rnd];
             }
 
-            item.SetView();
+            item.SetView(m_gameSettings);
             item.SetViewRoot(m_root);
 
             cellToConvert.Free();
@@ -350,7 +379,7 @@ public class Board
         var dir = GetMatchDirection(matches);
 
         var bonus = matches.Where(x => x.Item is BonusItem).FirstOrDefault();
-        if(bonus == null)
+        if (bonus == null)
         {
             return matches;
         }
